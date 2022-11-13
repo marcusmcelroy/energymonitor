@@ -14,7 +14,7 @@
 
 #include "mqtt_client.h"
 
-#include "secrets.h"
+#include "config.h"
 
 static const char *TAG = "pulsecount_mqtt";
 static esp_mqtt_client_handle_t s_client = NULL;

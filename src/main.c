@@ -33,7 +33,7 @@
 #include "esp32/ulp.h"
 #include "ulp_main.h"
 
-#include "secrets.h"
+#include "config.h"
 
 static const char *TAG = "PULSECOUNTER";
 
