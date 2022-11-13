@@ -16,12 +16,6 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/event_groups.h"
-// #include "freertos/semphr.h"
-// #include "freertos/queue.h"
-
-// #include "lwip/sockets.h"
-// #include "lwip/dns.h"
-// #include "lwip/netdb.h"
 
 #include "esp_log.h"
 #include "mqtt_client.h"
@@ -40,6 +34,7 @@ static const char *TAG = "PULSECOUNTER";
 extern const uint8_t ulp_main_bin_start[] asm("_binary_ulp_main_bin_start");
 extern const uint8_t ulp_main_bin_end[]   asm("_binary_ulp_main_bin_end");
 
+// Linked list to track mqtt messages
 struct node {
    int key;
    struct node *next;
@@ -119,15 +114,6 @@ void wait_for_all_messages_to_be_published(void) {
 
 #define MAXIMUM_RETRY 5
 
-//#define MAX_RETRY 10
-//uint32_t WIFI_READY = 0;
-//static int retry_cnt = 0;
-
-
-
-esp_mqtt_client_handle_t client = NULL;
-//uint32_t MQTT_CONNECTED = 0;
-
 // Functions in mqqt.c
 void mqtt_app_start(void);
 void mqtt_app_publish(char* topic, char *publish_string);
@@ -194,13 +180,6 @@ void wifi_init_sta(void)
         .sta = {
             .ssid = WIFI_SSID,
             .password = WIFI_PASS,
-        //     /* Authmode threshold resets to WPA2 as default if password matches WPA2 standards (pasword len => 8).
-        //      * If you want to connect the device to deprecated WEP/WPA networks, Please set the threshold value
-        //      * to WIFI_AUTH_WEP/WIFI_AUTH_WPA_PSK and set the password with length and format matching to
-	    //  * WIFI_AUTH_WEP/WIFI_AUTH_WPA_PSK standards.
-        //      */
-        //     .threshold.authmode = ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD,
-        //     .sae_pwe_h2e = WPA3_SAE_PWE_BOTH,
         },
     };
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA) );
@@ -250,13 +229,9 @@ static void init_ulp_program(void)
      *
      * Note that the ULP reads only the lower 16 bits of these variables.
      */
- //   ulp_counter = 0;
- //   ulp_debounce_counter = 0;
- //   ulp_debounce_max_count = 0;
     ulp_next_edge = 0;
     ulp_io_number = rtcio_num; /* map from GPIO# to RTC_IO# */
-    // ulp_edge_count_to_wake_up = 10;
-
+ 
     /* Initialize selected GPIO as RTC IO, enable input, disable pullup and pulldown */
     rtc_gpio_init(gpio_num);
     rtc_gpio_set_direction(gpio_num, RTC_GPIO_MODE_INPUT_ONLY);
@@ -277,6 +252,7 @@ static void init_ulp_program(void)
 
     /* Set ULP wake up period to T = 10ms.
      * Minimum pulse width has to be T * (ulp_debounce_counter + 1) = 10ms.
+     * Pulse width of electricity meter is 20ms.
      */
     ulp_set_wakeup_period(0, 10000);
 
@@ -287,23 +263,11 @@ static void init_ulp_program(void)
 
 int update_pulse_count(void)
 {
-    // const char* namespace = "plusecnt";
-    // const char* count_key = "count";
-
-    // ESP_ERROR_CHECK( nvs_flash_init() );
-    // nvs_handle_t handle;
-    // ESP_ERROR_CHECK( nvs_open(namespace, NVS_READWRITE, &handle));
-    // uint32_t pulse_count = 0;
-    // esp_err_t err = nvs_get_u32(handle, count_key, &pulse_count);
-    // assert(err == ESP_OK || err == ESP_ERR_NVS_NOT_FOUND);
-    // printf("Read pulse count from NVS: %5d\n", pulse_count);
-
     /* ULP program counts signal edges, convert that to the number of pulses */
     uint32_t pulse_count_from_ulp = (ulp_edge_count & UINT16_MAX) / 2;
     /* In case of an odd number of edges, keep one until next time */
     ulp_edge_count = ulp_edge_count % 2;
     return(pulse_count_from_ulp);
-    // printf("Pulse count from ULP: %5d\n", pulse_count_from_ulp);
 
     // /* Save the new pulse count to NVS */
     // pulse_count += pulse_count_from_ulp;
@@ -317,7 +281,7 @@ void app_main()
 {
     esp_sleep_wakeup_cause_t cause = esp_sleep_get_wakeup_cause();
     if (cause != ESP_SLEEP_WAKEUP_TIMER) {
-        printf("Initializing ULP\n");
+        ESP_LOGI(TAG, "Initializing ULP");
         init_ulp_program();  
     } 
     
@@ -338,7 +302,7 @@ void app_main()
     mqtt_app_publish(MQTT_TOPIC, msg_out);
     wait_for_all_messages_to_be_published();
 
-    printf("Entering deep sleep\n\n");
+    ESP_LOGI(TAG, "Entering deep sleep");
     //mqqt_app_stop();
     //ESP_ERROR_CHECK(esp_wifi_stop() );
 
