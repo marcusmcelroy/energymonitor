@@ -299,7 +299,7 @@ void app_main()
     // tmp[0] = (u_int8_t) (pulses >> 8) & 0xFF;
     // tmp[1] = (u_int8_t) (pulses & 0xFF);
   
-    mqtt_app_publish(MQTT_TOPIC, msg_out);
+    mqtt_app_publish(MQTT_PUB_TOPIC, msg_out);
     wait_for_all_messages_to_be_published();
 
     ESP_LOGI(TAG, "Entering deep sleep");
