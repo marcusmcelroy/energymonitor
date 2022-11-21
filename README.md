@@ -48,9 +48,9 @@ Setup weather scraper (python):
 By default, this uses the same influxdb2 credentials as telegraf (as set by INFLUXDB_V2_*). 
 You need to configure the bucket used to store weather data using the INFLUXDB_V2_BUCKET_ENERGY. This is weather if you followed the suggestions above.
 
-Setup esp32:
+Setup firebeetle esp32:
 
-Edit config.h, complete WIFI_* and MQTT_* as required.
+Edit config.h, complete WIFI_* and MQTT_* as required. Build, upload to firebeetle. 
 
 Bring up stack
 
