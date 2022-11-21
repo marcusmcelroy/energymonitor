@@ -73,7 +73,7 @@ void mqtt_app_publish(char* topic, char *publish_string)
 void mqtt_app_start(void)
 {
     esp_mqtt_client_config_t mqtt_cfg = {
-        .uri = MQTT_URI,
+        .uri = MQTT_URL,
         .username = MQTT_USER,
         .password = MQTT_PASS,
         .client_id = MQTT_CLID,
