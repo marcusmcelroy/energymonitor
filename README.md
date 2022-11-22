@@ -43,22 +43,22 @@ Both ESP32 application and docker stack can be (at least partially) configured u
 
 ESP32 application is configured by modifying the #define entries in the esp32/include/config.h file.
 
-| #define     | Description |
-| ----------- | ----------- |
-| WIFI_SSID | SSID of the Wifi network ESP32 connects to before publishing counter using mqtt |
-| WIFI_PASS | Password of Wifi network |
-| MQTT_URL | URL of the MQTT broker that the ESP32 will publish to. This will most likely need to be the IP address of the server running the docker stack. |
-| MQTT_USER | Username that ESP32 uses to authenticate with MQTT broker |
-| MQTT_PASS | Password that ESP32 uses to authenticate with MQTT broker |
-| MQTT_CLID | ClientID of the ESP32 |
-| MQTT_PUB_TOPIC | The topic that the ESP32 publishes with. Shouldn't need to change this. | 
-| TIME_TO_SLEEP | Time, in seconds, between each publish |
+| #define     | Default | Description |
+| ----------- | ------- |----------- |
+| WIFI_SSID | myssid | SSID of the Wifi network ESP32 connects to before publishing counter using mqtt |
+| WIFI_PASS | mypassword | Password of Wifi network |
+| MQTT_URL | mqtt://mqtt.eclipseprojects.io:1883 | URL of the MQTT broker that the ESP32 will publish to. This will most likely need to be the IP address of the server running the docker stack. |
+| MQTT_USER | mqttuser | Username that ESP32 uses to authenticate with MQTT broker |
+| MQTT_PASS | mqttpassword | Password that ESP32 uses to authenticate with MQTT broker |
+| MQTT_CLID | mqttclientid | ClientID of the ESP32 |
+| MQTT_PUB_TOPIC | /home/energy/electric | The topic that the ESP32 publishes with. Shouldn't need to change this. | 
+| TIME_TO_SLEEP | 58 | Time, in seconds, between each publish |
 
 ### Docker stack configuration
 
 Docker stack is configured by modifying envionment files in the .env fie.
 
-| Env Variable | Default | Description |
+| Environment Variable | Default | Description |
 | ------------ | ------- | ----------- |
 INFLUXDB_V2_URL | http://influxdb:8086 | URL that telegraf and weather scraper connect to influxdb on. Shouldn't need to change this. |
 INFLUXDB_V2_ORG | my_org | influxdb organisation used in connections to influxdb |
@@ -68,7 +68,7 @@ INFLUXDB_V2_BUCKET_WEATHER | weather | name of influxdb bucket used to store wea
 MQTT_URL | tcp://mosquitto:1883 | URL that telegraf uses to connect to mosquitto broker. Shouldn't need to change this. |
 MQTT_USER | mqttuser | Username that telegraf uses to authenticate with MQTT broker
 MQTT_PASS | mqttpassword | Password that telegraf uses to authenticate with MQTT broker
-MQTT_CLID | mqttclientid | ClientID of the telegraf |
+MQTT_CLID | mqttclientid | ClientID of telegraf |
 MQTT_SUB_TOPIC | home/energy/# | The topic(s) that telegraf subscribes to, and outputs to influxdb2. Shouldn't need to change this. | 
 
 ## Reccomended Usage
@@ -83,7 +83,7 @@ MQTT_SUB_TOPIC | home/energy/# | The topic(s) that telegraf subscribes to, and o
 
     docker compose up -d influxdb
 
-visit http://127.0.0.1:8086 and setup initial username, password, organisation, bucket, etc. 
+visit http:<ip of server running docker>:8086 and setup initial username, password, organisation, bucket, etc. 
 
 Suggest you use "energy" as the initial bucket name. If you want to use the weather scraper, then you'll need to setup another bucket to store weather data. Suggest you call this one "weather"
 
@@ -91,21 +91,32 @@ Create a new API token, with read/ write access to the buckets you created above
 
 You'll need to provide organisation, bucket and token when you configure telegraf.
 
-> docker compose down
+    docker compose down
 
 ### Setup mosquitto authentication:
 
-> docker compose up -d mosquitto
+Bring up the mosquitto service
+    
+    docker compose up -d mosquitto
 
-> docker exec -it mosquitto sh
+Run an interactive shell in the mosquitto container and create username/ password for clients to authenticate with..    
+    
+    docker exec -it mosquitto sh
+    mosquitto_passwd -c /mosquitto/data/pwfile <username>
 
-> mosquitto_passwd -c /mosquitto/data/pwfile <username>
-> mosquitto_passwd -b /mosquitto/data/pwfile <username> <password>
->exit
+Optionally add more users with..
+    
+    mosquitto_passwd -b /mosquitto/data/pwfile <username> <password>
 
-You'll need to provide a mosquitto username and password use when configuring telegraf.
+..before leaving the interactive shell..
+    
+    exit
 
-> docker compose down
+Then bring down the service..
+
+    docker compose down
+
+Note you'll need to provide a mosquitto username and password use when configuring telegraf below.
 
 ### Setup telegraf:
 
