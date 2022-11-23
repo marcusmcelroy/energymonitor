@@ -19,11 +19,11 @@ ESP32 code uses the ULP co-processor to count pulses with very low power consump
 
 Current whilst counting pulses is just less than 1mA, whilst average current over a 1m period, including the connect to wifi/ publish mqtt routine, is ~2.5mA. 
 
-![firebeetle_I_with_sensor_small](https://user-images.githubusercontent.com/73594308/203511015-bac02573-d0ba-4e69-bc0a-f7ce05a35d3c.png)
+![current waveform with sensor](https://user-images.githubusercontent.com/73594308/203511015-bac02573-d0ba-4e69-bc0a-f7ce05a35d3c.png)
 
 There is undoubtebly a lower power sensor for this purpose- I simply went for cheap and convenient. For comparison here's the current waveform without the sensor connected..
 
-![firebeetle_I_without_sensor_small](https://user-images.githubusercontent.com/73594308/203511132-55535e4c-3d06-4385-9500-b19b1e753140.png)
+![current waveform without sensor](https://user-images.githubusercontent.com/73594308/203511132-55535e4c-3d06-4385-9500-b19b1e753140.png)
 
 ESP32 code is developed in vscode using platformio plugin, and is heavilly based on the [mqtt](https://github.com/espressif/esp-idf/tree/master/examples/protocols/mqtt/tcp), [wifi](https://github.com/espressif/esp-idf/tree/master/examples/wifi/getting_started) and [ulp_fsm](https://github.com/espressif/esp-idf/tree/master/examples/system/ulp_fsm/ulp) [ESP32 IDF](https://github.com/espressif/esp-idf) [examples](https://github.com/espressif/esp-idf/tree/master/examples)..
 
@@ -176,7 +176,9 @@ Create a dashboard, add a panel, and configure the panel to use an influxdb quer
         |> aggregateWindow(every: v.windowPeriod, fn: sum, createEmpty: false)
         |> yield(name: "electricityinwh")
 
-..to show some of your readings.
+..to show some of your readings. Here's what  I've done so far..
+
+![my grafana dashboard](https://user-images.githubusercontent.com/73594308/203513421-97e517a0-7bd1-4259-b649-e024dafd25cd.png)
 
 ## Setup ESP32
 
